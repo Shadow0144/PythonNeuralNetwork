@@ -7,20 +7,22 @@ Created on Tue Jun  9 11:18:07 2020
 
 import numpy as np
 import math
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.lines as lines
 import neural_network as nn
+from random import shuffle
 
-p_cnt = 20
+p_cnt = 50
 noise_size = 0.1
 
 xs = np.linspace(-10, 10, p_cnt)
-yHats = np.sin(xs * 4. * math.pi) #xs * 3 + 1
+yHats = np.sin(xs * .4 * math.pi) #xs * 3 + 1
+yHats = np.add(yHats, np.sin(xs * .2 * math.pi + 1.)) / 2.
 yHats = yHats + (np.random.rand(p_cnt)*noise_size) - 0.5
 
-net = nn.network(np.array([1, 6, 6, 1]), np.array([0, 1, 1, 0]))
+net = nn.network(np.array([1, 20, 1]), np.array([0, 1, 0]))
 net.set_learning_rate(0.1)
+net.set_batch_size(10)
+net.set_dropout_rate(0.0)
 
 MSE = 1
 error_threshold = 0.01
@@ -31,8 +33,10 @@ converged = False
 while MSE > error_threshold and i < stop and not converged:
     MSE = 0
     converged = True
-    for x in range(p_cnt):
-        y = net.feed_forward(np.array(xs[x]))
+    i_shuffled = list(range(len(xs)))
+    shuffle(i_shuffled)
+    for x in i_shuffled:
+        y = net.feed_forward(np.array(xs[x]), True)
         converged = net.backprop(y, yHats[x]) and converged
         MSE += net.MSE(y, yHats[x])
     #ys = net.feed_forward(np.array(xs))
